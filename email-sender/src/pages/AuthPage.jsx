@@ -5,7 +5,6 @@ import LoginForm from "../components/LoginForm";
 const AuthPage = ({ onAuthSuccess, defaultToLogin }) => {
   const [isLogin, setIsLogin] = useState(false);
 
-  // Ensure login form shows when defaultToLogin is true
   useEffect(() => {
     setIsLogin(defaultToLogin);
   }, [defaultToLogin]);
