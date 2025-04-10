@@ -4,6 +4,7 @@ const SignupForm = ({ onAuthSuccess }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [feedback, setFeedback] = useState({ message: "", type: "" }); // success or error
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -17,66 +18,95 @@ const SignupForm = ({ onAuthSuccess }) => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Signup successful!");
-        onAuthSuccess(); // Redirect or show login
+        setFeedback({ message: "✅ Signup successful!", type: "success" });
+        setTimeout(() => {
+          setFeedback({ message: "", type: "" });
+          onAuthSuccess(); // move to login or whatever's next
+        }, 1500);
       } else {
-        alert(data.error || "Signup failed.");
+        setFeedback({
+          message: data.error || "❌ Signup failed.",
+          type: "error",
+        });
+        setTimeout(() => setFeedback({ message: "", type: "" }), 3000);
       }
     } catch (err) {
       console.error("Signup error:", err);
-      alert("Something went wrong.");
+      setFeedback({ message: "⚠️ Something went wrong.", type: "error" });
+      setTimeout(() => setFeedback({ message: "", type: "" }), 3000);
     }
   };
 
   return (
-    <div className="flex flex-col justify-center h-100 items-center w-130 bg-gray-200 rounded-lg">
-      <form
-        onSubmit={handleSignup}
-        className="auth-form flex flex-col text-lg black w-60 h-40 gap-2 mb-40"
-      >
-        <div className="flex justify-center">
-          <h2 className="text-2xl">Sign Up Form</h2>
-        </div>
-        <div>
-          <label>Name</label>
-          <input
-            type="text"
-            placeholder=" Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="border-2 border-black rounded-md w-60 h-12"
-            required
-          />
-        </div>
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            placeholder=" Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border-2 border-black rounded-md w-60 h-12"
-            required
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            placeholder=" Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border-2 border-black rounded-md w-60 h-12"
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-gradient-to-b from-cyan-400 to-blue-600 text-lg text-black font-bold rounded-lg py-2 hover:bg-gray-300 hover:cursor-pointer border-2 border-blue-800 hover:from-cyan-700 hover:to-blue-900"
-        >
-          Sign Up
-        </button>
-      </form>
+    <div className=" flex items-center justify-center ">
+      <div className="bg-white rounded-2xl p-10 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
+          ✍️ Sign Up Form
+        </h2>
+
+        {feedback.message && (
+          <div
+            className={`text-center py-2 px-4 mb-4 rounded-lg font-semibold transition-all duration-300 ${
+              feedback.type === "success"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {feedback.message}
+          </div>
+        )}
+
+        <form onSubmit={handleSignup} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Name
+            </label>
+            <input
+              type="text"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300"
+          >
+            Sign Up
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

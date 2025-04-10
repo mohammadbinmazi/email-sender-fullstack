@@ -1,7 +1,10 @@
+// real data
 import { useEffect, useState } from "react";
+import { Trash2, ToggleLeft, ToggleRight, LayoutDashboard } from "lucide-react";
 
 const UsersList = () => {
   const [users, setUsers] = useState([]);
+  const [showDashboard, setShowDashboard] = useState(false);
 
   const fetchUsers = async () => {
     try {
@@ -13,111 +16,138 @@ const UsersList = () => {
       alert("Failed to fetch users");
     }
   };
-  const toggleUserStatus = async (id, status) => {
+
+  const toggleUserStatus = async (id, currentStatus) => {
+    const newStatus = !currentStatus;
+
     try {
       const res = await fetch(`http://localhost:5000/users/${id}/status`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ is_active: status }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ is_active: newStatus }),
       });
 
       const data = await res.json();
-
-      if (data.success) {
-        setUsers(
-          users.map((user) =>
-            user.id === id ? { ...user, is_active: status } : user
+      if (res.ok) {
+        setUsers((prev) =>
+          prev.map((user) =>
+            user.id === id ? { ...user, is_active: newStatus } : user
           )
         );
       } else {
-        alert(data.error || "Failed to update user status");
+        alert(data.error || "Something went wrong.");
       }
     } catch (err) {
-      console.error("Error updating user status:", err);
-      alert("Something went wrong");
+      console.error("Toggle Error:", err);
+      alert("Network error.");
     }
   };
 
   const deleteUser = async (id) => {
-    console.log("Deleting user with ID:", id);
-    const confirmDelete = window.confirm(
-      "Are you sure you want to delete this user?"
-    );
+    const confirmDelete = window.confirm("Delete this user?");
     if (!confirmDelete) return;
 
     try {
       const res = await fetch(`http://localhost:5000/users/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       const data = await res.json();
-      console.log("DELETE Response:", data);
-
       if (data.success) {
-        setUsers(users.filter((user) => user.id !== id));
+        setUsers((prev) => prev.filter((user) => user.id !== id));
       } else {
         alert(data.error || "Failed to delete user");
       }
     } catch (err) {
-      console.error("Error in deleteUser:", err);
+      console.error("Delete Error:", err);
       alert("Something went wrong");
     }
   };
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (showDashboard) fetchUsers();
+  }, [showDashboard]);
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">All Users</h2>
-      <table className="min-w-full bg-white border">
-        <thead>
-          <tr>
-            <th className="border p-2">ID</th>
-            <th className="border p-2">Name</th>
-            <th className="border p-2">Email</th>
-            <th className="border p-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id}>
-              <td className="border p-2">{user.id}</td>
-              <td className="border p-2">{user.name}</td>
-              <td className="border p-2">{user.email}</td>
-              <td className="border p-2">
-                <div className="flex justify-between gap-3.5">
-                  <button
-                    onClick={() => deleteUser(user.id)}
-                    className="bg-red-500 text-white px-5 py-1 rounded"
-                  >
-                    Delete
-                  </button>
-                  {user.is_active ? (
-                    <button
-                      onClick={() => toggleUserStatus(user.id, false)}
-                      className="bg-yellow-500 text-white px-3 py-1 rounded"
-                    >
-                      Deactivate
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => toggleUserStatus(user.id, true)}
-                      className="bg-green-600 text-white px-3 py-1 rounded"
-                    >
-                      Activate
-                    </button>
-                  )}
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="p-6 max-w-6xl mx-auto">
+      <button
+        onClick={() => setShowDashboard((prev) => !prev)}
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg mb-4 shadow"
+      >
+        <LayoutDashboard size={20} />
+        {showDashboard ? "Hide Dashboard" : "Show Dashboard"}
+      </button>
+
+      {showDashboard && (
+        <div className="overflow-x-auto rounded  border-1 border-black-200 transition-all duration-300">
+          <table className="min-w-full bg-white text-sm text-left">
+            <thead className="bg-gray-100 border-b">
+              <tr>
+                <th className="px-4 py-3 font-medium text-gray-600">ID</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Name</th>
+                <th className="px-4 py-3 font-medium text-gray-600">Email</th>
+                <th className="px-4 py-3 font-medium text-gray-600 text-center">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="text-center py-6 text-gray-500">
+                    No users found 👀
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="border-t hover:bg-gray-50">
+                    <td className="px-4 py-3">{user.id}</td>
+                    <td className="px-4 py-3">{user.name}</td>
+                    <td className="px-4 py-3">{user.email}</td>
+                    <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex justify-center items-center gap-4">
+                          {user.id !== 6 && user.id !== 17 && (
+                            <button
+                              onClick={() =>
+                                toggleUserStatus(user.id, user.is_active)
+                              }
+                              className={`p-2 rounded-full ${
+                                user.is_active
+                                  ? " text-green-600 "
+                                  : " text-yellow-600"
+                              }`}
+                              title={user.is_active ? "Deactivate" : "Activate"}
+                            >
+                              {user.is_active ? (
+                                <ToggleRight size={20} />
+                              ) : (
+                                <ToggleLeft size={20} />
+                              )}
+                            </button>
+                          )}
+
+                          {user.id !== 6 && user.id !== 17 && (
+                            <button
+                              onClick={() => deleteUser(user.id)}
+                              className="p-2 text-red-600 rounded-full"
+                              title="Delete User"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };

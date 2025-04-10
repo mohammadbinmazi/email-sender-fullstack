@@ -1,80 +1,9 @@
-// import { useState } from "react";
-
-// const LoginForm = ({ onAuthSuccess }) => {
-//   const [email, setEmail] = useState("");
-//   const [password, setPassword] = useState("");
-
-//   const handleLogin = async (e) => {
-//     e.preventDefault();
-//     const res = await fetch("http://localhost:5000/login", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({ email, password }),
-//     });
-
-//     const data = await res.json();
-//     if (res.ok) {
-//       localStorage.setItem("token", data.token);
-//       onAuthSuccess();
-//     } else {
-//       alert(data.message);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col justify-center h-100 r justify-items-center items-center w-130  bg-gray-200 rounded-lg  ">
-//       <form
-//         onSubmit={handleLogin}
-//         className="auth-form flex flex-col text-lg text-black w-60 h-40 gap-2 mb-24 "
-//       >
-//         <div className="flex justify-center">
-//           <h1 className="text-2xl  ">Login Form</h1>
-//         </div>
-//         <div>
-//           <label htmlFor="" className="">
-//             Email
-//           </label>
-
-//           <input
-//             type="email"
-//             placeholder=" Email"
-//             value={email}
-//             onChange={(e) => setEmail(e.target.value)}
-//             required
-//             className="border-2  border-black rounded-md w-60 h-12 "
-//           />
-//         </div>
-//         <div>
-//           <label htmlFor="" className="">
-//             Password
-//           </label>
-//           <input
-//             type="password"
-//             placeholder=" Password"
-//             value={password}
-//             onChange={(e) => setPassword(e.target.value)}
-//             required
-//             className="border-2  border-black rounded-md w-60 h-12 "
-//           />
-//         </div>
-//         <button
-//           type="submit"
-//           className="bg-gradient-to-b from-cyan-400 to-blue-600 text-lg text-black font-bold rounded-lg py-2 hover:bg-gray-300 hover:cursor-pointer border-2 border-blue-800 hover:from-cyan-700 hover:to-blue-900"
-//         >
-//           Login
-//         </button>
-//       </form>
-//     </div>
-//   );
-// };
-
-// export default LoginForm;
-
 import { useState } from "react";
 
 const LoginForm = ({ onAuthSuccess }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [feedback, setFeedback] = useState({ message: "", type: "" }); // success or error
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -88,55 +17,82 @@ const LoginForm = ({ onAuthSuccess }) => {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Login successful!");
-        onAuthSuccess(); // Let the parent component redirect or handle state
+        localStorage.setItem("email", data.email);
+        setFeedback({ message: "✅ Login successful!", type: "success" });
+        setTimeout(() => {
+          setFeedback({ message: "", type: "" });
+          onAuthSuccess();
+        }, 1500);
       } else {
-        alert(data.error || "Login failed.");
+        setFeedback({
+          message: data.error || "❌ Login failed.",
+          type: "error",
+        });
+        setTimeout(() => setFeedback({ message: "", type: "" }), 3000);
       }
     } catch (err) {
       console.error("Login error:", err);
-      alert("Something went wrong.");
+      setFeedback({ message: "⚠️ Something went wrong.", type: "error" });
+      setTimeout(() => setFeedback({ message: "", type: "" }), 3000);
     }
   };
 
   return (
-    <div className="flex flex-col justify-center h-100 items-center w-130 bg-gray-200 rounded-lg">
-      <form
-        onSubmit={handleLogin}
-        className="auth-form flex flex-col text-lg text-black w-60 h-40 gap-2 mb-24"
-      >
-        <div className="flex justify-center">
-          <h1 className="text-2xl">Login Form</h1>
-        </div>
-        <div>
-          <label>Email</label>
-          <input
-            type="email"
-            placeholder=" Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="border-2 border-black rounded-md w-60 h-12"
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            placeholder=" Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="border-2 border-black rounded-md w-60 h-12"
-          />
-        </div>
-        <button
-          type="submit"
-          className="bg-gradient-to-b from-cyan-400 to-blue-600 text-lg text-black font-bold rounded-lg py-2 hover:bg-gray-300 hover:cursor-pointer border-2 border-blue-800 hover:from-cyan-700 hover:to-blue-900"
-        >
-          Login
-        </button>
-      </form>
+    <div className=" flex items-center justify-center">
+      <div className="bg-white  rounded-lg p-10 w-full max-w-md">
+        <h2 className="text-3xl font-bold text-center text-blue-700 mb-6">
+          🔐 Login Form
+        </h2>
+
+        {feedback.message && (
+          <div
+            className={`text-center py-2 px-4 mb-4 rounded-lg font-semibold transition-all duration-300 ${
+              feedback.type === "success"
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {feedback.message}
+          </div>
+        )}
+
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full border border-gray-300 p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold py-3 rounded-lg hover:from-cyan-600 hover:to-blue-700 transition-all duration-300"
+          >
+            Login
+          </button>
+        </form>
+      </div>
     </div>
   );
 };
